@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskPlanner</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="style1.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="app-title">TaskPlanner</h1>
+            </div>
+            <div class="header-center">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search tasks..." aria-label="Search tasks">
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-icon" id="darkModeToggle" aria-label="Toggle dark mode">
+                    <span class="dark-mode-icon">🌓</span>
+                </button>
+                <button class="btn btn-primary" id="exportBtn">Export</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+                <button class="btn btn-secondary" id="importBtn">Import</button>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="daily-top-3">
+                    <h3>Daily Top 3</h3>
+                    <div id="dailyTop3" class="daily-tasks">
+                        <div class="empty-state">Pin 3 tasks for today</div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <h3>Categories</h3>
+                    <div class="filter-chips" id="categoryFilters">
+                        <button class="chip active" data-category="all">All</button>
+                        <button class="chip" data-category="work">Work</button>
+                        <button class="chip" data-category="personal">Personal</button>
+                        <button class="chip" data-category="shopping">Shopping</button>
+                        <button class="chip" data-category="health">Health</button>
+                    </div>
+
+                    <h3>Status</h3>
+                    <div class="filter-chips" id="statusFilters">
+                        <button class="chip active" data-status="all">All</button>
+                        <button class="chip" data-status="active">Active</button>
+                        <button class="chip" data-status="completed">Completed</button>
+                    </div>
+
+                    <h3>Priority</h3>
+                    <div class="filter-chips" id="priorityFilters">
+                        <button class="chip active" data-priority="all">All</button>
+                        <button class="chip" data-priority="high">High</button>
+                        <button class="chip" data-priority="medium">Medium</button>
+                        <button class="chip" data-priority="low">Low</button>
+                    </div>
+
+                    <h3>Quick Filters</h3>
+                    <div class="filter-chips" id="quickFilters">
+                        <button class="chip" data-filter="overdue">Overdue</button>
+                        <button class="chip" data-filter="due-today">Due Today</button>
+                        <button class="chip" data-filter="due-soon">Due Soon</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="task-header">
+                    <div class="task-controls">
+                        <button class="btn btn-primary" id="newTaskBtn">
+                            <span>+</span> New Task
+                        </button>
+                        <select id="sortSelect" aria-label="Sort tasks">    
+                            <option value="created">Sort by Created</option>
+                            <option value="priority">Sort by Priority</option>
+                            <option value="deadline">Sort by Deadline</option>
+                            <option value="title">Sort by Title</option>
+                        </select>
+                        <div class="bulk-actions" id="bulkActions" style="display: none;">
+                            <button class="btn btn-sm" id="bulkComplete">Complete Selected</button>
+                            <button class="btn btn-sm btn-danger" id="bulkDelete">Delete Selected</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-list" id="taskList">
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-icon">📝</div>
+                        <h3>No tasks here—add one!</h3>
+                        <p>Create your first task to get started with TaskPlanner</p>
+                    </div>
+                </div>
+
+                <!-- Undo Bar -->
+                <div class="undo-bar" id="undoBar" style="display: none;">
+                    <span>Task deleted</span>
+                    <button class="btn btn-sm" id="undoBtn">Undo</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- Task Modal -->
+        <div class="modal" id="taskModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">New Task</h2>
+                    <button class="btn btn-icon modal-close" id="modalClose" aria-label="Close modal">×</button>
+                </div>
+                <form class="modal-body" id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle">Title *</label>
+                        <input type="text" id="taskTitle" required aria-describedby="taskTitleError">
+                        <div class="error" id="taskTitleError"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea id="taskDescription" rows="3" placeholder="Optional notes or details..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskCategory">Category</label>
+                            <select id="taskCategory">
+                                <option value="personal">Personal</option>
+                                <option value="work">Work</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="health">Health</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taskPriority">Priority</label>
+                            <select id="taskPriority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taskDeadline">Deadline</label>
+                            <input type="datetime-local" id="taskDeadline">
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="form-group">
+                        <label>Subtasks</label>
+                        <div class="subtasks" id="subtaskList">
+                            <!-- Subtasks will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary" id="addSubtaskBtn">+ Add Subtask</button>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Keyboard shortcuts help -->
+        <div class="shortcuts-info" style="display: none;">
+            <p><kbd>N</kbd> New task | <kbd>Enter</kbd> Save | <kbd>Esc</kbd> Cancel | <kbd>Delete</kbd> Remove selected</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
