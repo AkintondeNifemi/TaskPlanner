@@ -24,6 +24,12 @@ class TaskManager {
         this.applyTheme();
         this.renderTasks();
         this.renderDailyTop3();
+        this.startDeadlineChecker();
+
+if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
     }
 
     // Data Management
@@ -47,6 +53,57 @@ class TaskManager {
         localStorage.setItem('taskmaster-tasks', JSON.stringify(this.tasks));
         localStorage.setItem('taskmaster-top3', JSON.stringify(this.dailyTop3));
     }
+
+
+   // Inside TaskManager class
+
+startDeadlineChecker() {
+    setInterval(() => {
+        const now = new Date();
+
+        this.tasks.forEach(task => {
+            if (task.deadline && !task.completed) {
+                const deadline = new Date(task.deadline);
+
+                // Check if deadline has passed and not already reminded
+                if (deadline <= now && !task.reminded) {
+                    this.notifyTaskDue(task);
+                    task.reminded = true; // mark as reminded
+                    this.saveData();
+                }
+            }
+        });
+    }, 60000); // check every 1 minute
+}
+
+notifyTaskDue(task) {
+    // Play sound if user allowed
+    const audio = document.getElementById('taskReminderSound');
+    if (audio) {
+        audio.play().catch(err => {
+            console.log("Sound blocked until user interacts once with the page:", err);
+        });
+    }
+
+    // Browser notification (works across tabs)
+    if (Notification.permission === "granted") {
+        new Notification("⏰ Task Due!", {
+            body: task.title,
+            icon: "icon.png" // optional
+        });
+    } else {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification("⏰ Task Due!", { body: task.title });
+            }
+        });
+    }
+
+    // Remove the alert(), since it won’t show in background anyway
+}
+
+
+    
 
     // Event Listeners
     setupEventListeners() {
