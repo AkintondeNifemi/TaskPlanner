@@ -1,3 +1,17 @@
+// Register the Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered successfully with scope:', registration.scope);
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+    });
+}
+
+
 class TaskManager {
     constructor() {
         this.tasks = [];
@@ -77,29 +91,41 @@ startDeadlineChecker() {
 }
 
 notifyTaskDue(task) {
-    // Play sound if user allowed
     const audio = document.getElementById('taskReminderSound');
+
     if (audio) {
-        audio.play().catch(err => {
-            console.log("Sound blocked until user interacts once with the page:", err);
-        });
+        // Reset playback
+        audio.currentTime = 0;
+
+        // Play in a loop every 5 seconds until user stops it
+        this.ringInterval = setInterval(() => {
+            audio.play().catch(err => {
+                console.log("Sound blocked until user interacts once with the page:", err);
+            });
+        }, 5000); // rings every 5 seconds
     }
 
-    // Browser notification (works across tabs)
+    // Browser notification
     if (Notification.permission === "granted") {
-        new Notification("⏰ Task Due!", {
-            body: task.title,
-            icon: "icon.png" // optional
+        const notif = new Notification("⏰ Task Due!", {
+            body: task.title + " (Click to stop alarm)",
+            icon: "icon.png"
         });
-    } else {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification("⏰ Task Due!", { body: task.title });
-            }
-        });
-    }
 
-    // Remove the alert(), since it won’t show in background anyway
+        // Stop ringing if user clicks notification
+        notif.onclick = () => {
+            this.stopRinging();
+            window.focus();
+        };
+    }
+}
+
+// Helper function to stop ringing
+stopRinging() {
+    if (this.ringInterval) {
+        clearInterval(this.ringInterval);
+        this.ringInterval = null;
+    }
 }
 
 
@@ -298,6 +324,8 @@ notifyTaskDue(task) {
             this.saveData();
             this.renderTasks();
             this.renderDailyTop3();
+            this.stopRinging();
+
         }
     }
 
